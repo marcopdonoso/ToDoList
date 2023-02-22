@@ -89,14 +89,24 @@ app.get("/:customListTitle", function(req,res) {
 
 app.post("/", function(req, res){
   const itemName = req.body.newItem;
+  const listName = req.body.list;
 
   const item = new Item({
     name: itemName
   });
 
-  item.save();
+  if(listName === "Today") {
+    item.save();
+    res.redirect("/");
+  } else {
+    List.findOne({name: listName}, function(err, doc) {
+      doc.items.push(item);
+      doc.save();
+      res.redirect("/" + listName);
+    })
+  }
 
-  res.redirect("/");
+  
 });
 
 app.post("/delete", function(req, res) {
