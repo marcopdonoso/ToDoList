@@ -3,6 +3,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
+const _ = require("lodash");
 
 const app = express();
 
@@ -55,8 +56,9 @@ app.get("/", function(req, res) {
           } else {
             console.log("Succesfully saved default items to DB.");
           }
+          res.redirect("/");
         });
-        res.redirect("/");
+        // res.redirect("/");
       } else {
         res.render("list", {listTitle: "Today", newListItems: docs});
       }
@@ -65,7 +67,7 @@ app.get("/", function(req, res) {
 });
 
 app.get("/:customListTitle", function(req,res) {
-  const customListTitle = req.params.customListTitle;
+  const customListTitle = _.capitalize(req.params.customListTitle);
 
   List.findOne({name: customListTitle}, function(err,doc) {
     if (err) {
@@ -80,8 +82,10 @@ app.get("/:customListTitle", function(req,res) {
           name: customListTitle,
           items: defaultItems
         });
-        list.save();
-        res.redirect("/" + customListTitle);
+        list.save(function(err, result) {
+          res.redirect("/" + customListTitle);
+        });
+        // res.redirect("/" + customListTitle);
       }
     }
   });
@@ -96,13 +100,17 @@ app.post("/", function(req, res){
   });
 
   if(listName === "Today") {
-    item.save();
-    res.redirect("/");
+    item.save(function(err, result) {
+      res.redirect("/");
+    });
+    // res.redirect("/");
   } else {
     List.findOne({name: listName}, function(err, doc) {
       doc.items.push(item);
-      doc.save();
-      res.redirect("/" + listName);
+      doc.save(function(err, result) {
+        res.redirect("/" + listName);
+      });
+      // res.redirect("/" + listName);
     })
   }
 
